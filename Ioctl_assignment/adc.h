@@ -8,7 +8,7 @@ typedef struct
    int val1,val2;
 }args;
 
-#define ADC_CHENNEL _IOR('p',1,args *)
+#define ADC_CHANNEL _IOR('p',1,args *)
 
 
 #endif

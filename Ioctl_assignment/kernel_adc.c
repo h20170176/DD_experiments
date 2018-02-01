@@ -18,9 +18,62 @@ static dev_t devno;
 static struct class *class_cr;
 static struct cdev c_dev;
 
-ssize_t my_read (struct file *pfile, char __user *puser, size_t length, loff_t *poffset)
+int fetch_adc_val(void)
 {
-   pr_info("File Read() \n");
+   int adc_val2;
+   adc_val2=get_random_int()%1024;
+   return adc_val2;
+}
+ssize_t my_read (struct file *pfile, char __user *ioctl_param, size_t length, loff_t *poffset)
+{
+   int adc_val;
+   args q;
+   pr_info("File opened for Read \n");
+   if(copy_from_user(&q,(args *)ioctl_param,sizeof(args)))
+      return -1;
+   switch(q.val1)
+   {
+      case 1:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC1 = %d\n",adc_val);
+         break;
+      case 2:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC2 = %d\n",adc_val);
+         break;
+      case 3:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC3 = %d\n",adc_val);
+         break;
+      case 4:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC4 = %d\n",adc_val);
+         break;
+      case 5:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC5 = %d\n",adc_val);
+         break;
+      case 6:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC6 = %d\n",adc_val);
+         break;
+      case 7:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC7 = %d\n",adc_val);
+         break;
+      case 8:
+         adc_val=fetch_adc_val();
+         pr_info("Digital value from ADC8 = %d\n",adc_val);
+         break;
+      default:
+         pr_err("Invalid channel ID\n");
+         return -1;
+   }
+   
+   q.val2=adc_val;
+   if(copy_to_user((args *)ioctl_param,&q,sizeof(args)))
+   return -1;
+
    return 0;
 }
 ssize_t my_write (struct file *pfile, const char __user *puser, size_t length, loff_t *poffset)
@@ -30,66 +83,29 @@ ssize_t my_write (struct file *pfile, const char __user *puser, size_t length, l
 }
 int my_open (struct inode *pinode, struct file *pfile)
 {
-   pr_info("File Open() \n");
+   pr_info("File Opened successfully !!! \n");
    return 0;
 }
 int my_release (struct inode *pinode, struct file *pfile)
 {
-   pr_info("File Close() \n");
+   pr_info("File Closed Successfully !!! \n");
    return 0;
 }
 
 long my_ioctl(struct file *file, unsigned int ioctl_num, unsigned long ioctl_param)
 {
-   args q;
-   int adc_val;
+   int dummy_read;
+   pr_info("Inside IOCTL Function\n");
    switch (ioctl_num)
    {
-      pr_info("Inside IOCTL Function\n");
-      case ADC_CHENNEL:
-         adc_val=get_random_int()%1024;
-      if(copy_from_user(&q,(args *)ioctl_param,sizeof(args)))
-         return -1;
-         switch(q.val1)
-         {
-            case 1:
-               pr_info("Digital value from ADC1 = %d\n",adc_val);
-               break;
-            case 2:
-               pr_info("Digital value from ADC2 = %d\n",adc_val);
-               break;
-            case 3:
-               pr_info("Digital value from ADC3 = %d\n",adc_val);
-               break;
-            case 4:
-               pr_info("Digital value from ADC4 = %d\n",adc_val);
-               break;
-            case 5:
-               pr_info("Digital value from ADC5 = %d\n",adc_val);
-               break;
-            case 6:
-               pr_info("Digital value from ADC6 = %d\n",adc_val);
-               break;
-            case 7:
-               pr_info("Digital value from ADC7 = %d\n",adc_val);
-               break;
-            case 8:
-               pr_info("Digital value from ADC8 = %d\n",adc_val);
-               break;
-            default:
-               pr_err("Invalid channel ID\n");
-               return -1;
-         }
-      break;
-      
-      default:
-         pr_err("Invalid command code\n");
-      return -1;
-   }
-   q.val2=adc_val;
-   if(copy_to_user((args *)ioctl_param,&q,sizeof(args)))
-      return -1;
+      case ADC_CHANNEL:
+         dummy_read =  my_read (file, (char *)ioctl_param, 100, 0);
+         break;
 
+      default:
+         pr_err("Invalid command entered\n");
+         return -1;
+   }
    return 0;
 }
 
